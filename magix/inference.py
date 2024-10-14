@@ -129,7 +129,7 @@ class FMAGI(object):
                 xr = torch.empty_like(x)
                 for i in range(self.comp_size):
                     xr[:,i] = x[:,i] + gpmat[i]['LU'].matmul(delta[:,i])
-                dxrdtOde = self.fOde(xr)
+                dxrdtOde = self.fOde(xr, self.grid)
                 theta_optimizer.zero_grad()
                 lkh = torch.zeros(self.comp_size)
                 for i in range(self.comp_size):
@@ -145,7 +145,7 @@ class FMAGI(object):
                     xr[:,i] = x[:,i] + gpmat[i]['LU'].matmul(eps*delta.grad.data.sign()[:,i])
             else:
                 xr = x.clone()
-            dxrdtOde = self.fOde(xr)
+            dxrdtOde = self.fOde(xr, self.grid)
             theta_optimizer.zero_grad()
             lkh = torch.zeros(self.comp_size)
             for i in range(self.comp_size):
@@ -171,7 +171,7 @@ class FMAGI(object):
                     mean = self.gp_models[i].mean_module.constant.item()
                     outputscale = self.gp_models[i].covar_module.outputscale.item()
                     x[:,i] = mean + np.sqrt(outputscale) * gpmat[i]['LC'].matmul(u[:,i])
-                dxdtOde = self.fOde(x)
+                dxdtOde = self.fOde(x, self.grid)
                 lkh = torch.zeros((self.comp_size, 3))
                 for i in range(self.comp_size):
                     mean = self.gp_models[i].mean_module.constant.item()
@@ -203,7 +203,7 @@ class FMAGI(object):
             if ((epoch+1) < max_epoch):
                 # update hyperparameter
                 if (((epoch+1) % int(max_epoch/5) == 0) and hyperparams_update):
-                    dxdtOde = self.fOde(x)
+                    dxdtOde = self.fOde(x, self.grid)
                     for i in range(self.comp_size):
                         ti = self.ys[i][:,0]
                         yi = self.ys[i][:,1]
@@ -279,7 +279,7 @@ class FMAGI(object):
                         xr = torch.empty_like(x)
                         for i in range(self.comp_size):
                             xr[:,i] = x[:,i] + gpmat[i]['LU'].matmul(delta[:,i])
-                        dxrdtOde = self.fOde(xr)
+                        dxrdtOde = self.fOde(xr, self.grid)
                         theta_optimizer.zero_grad()
                         lkh = torch.zeros(self.comp_size)
                         for i in range(self.comp_size):
@@ -296,7 +296,7 @@ class FMAGI(object):
                     else:
                         xr = x.clone()
                     # optimze theta over the adversarial path
-                    dxrdtOde = self.fOde(xr)
+                    dxrdtOde = self.fOde(xr, self.grid)
                     theta_optimizer.zero_grad()
                     lkh = torch.zeros(self.comp_size)
                     for i in range(self.comp_size):

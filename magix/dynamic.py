@@ -16,11 +16,33 @@ class odeModule(torch.nn.Module):
             theta = torch.tensor(theta).double()
         self.theta = torch.nn.Parameter(theta)
 
-    def forward(self, x):
+    def forward(self, x, t):
         x = x.squeeze()
         if (x.ndimension()==1):
             x = x.reshape(1,-1)
-        return (self.f(self.theta, x))
+        return (self.f(self.theta, x, t))
+
+def make_tensor(vec):
+    if (not torch.is_tensor(vec)):
+        vec = torch.tensor(vec).double()
+    return vec
+
+class ChangeOdeModule(torch.nn.Module):
+
+    def __init__(self, fOde, theta, change_par, change_time):
+        super().__init__()
+        self.f = fOde
+        self.change_par = torch.nn.Parameter(make_tensor(change_par))
+        self.change_time = make_tensor(change_time)
+        theta = make_tensor(theta)
+        self.theta = torch.nn.Parameter(theta)
+
+    def forward(self, x, t):
+        x = x.squeeze()
+        if (x.ndimension()==1):
+            x = x.reshape(1,-1)
+        assert x.shape[0] == t.shape[0]
+        return (self.f(self.theta, self.change_par, self.change_time, x, t))
 
 class nnModule(torch.nn.Module):
     # Neural Network with Constraint on Output
