@@ -53,8 +53,6 @@ def FNode(theta, x):
     return (dxdt)
 
 theta = torch.tensor([1.,1.,5.]).double() # initial theta
-change_par = [1.5, 0.5]
-change_time = 10
 
 fOde = dynamic.odeModule(FNode, theta)
 
